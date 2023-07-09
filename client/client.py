@@ -6,6 +6,7 @@ import sys
 
 client_id = -1
 client_socket = None
+running = True
 
 def sigint_handler(sig, frame):
 	global client_socket
@@ -26,6 +27,7 @@ def send(event, data):
 def receive_data():
 	global client_id
 	global client_socket
+	global running
 
 	while True:
 		try:
@@ -49,6 +51,7 @@ def receive_data():
 
 
 	client_socket.close()
+	running = False
 
 def main():
 	global client_socket
@@ -64,8 +67,10 @@ def main():
 
 	threading.Thread(target=receive_data).start()
 
-	while True:
+	while running:
 		pass
+
+	print("Client stopped")
 
 if __name__ == '__main__':
 	main()
