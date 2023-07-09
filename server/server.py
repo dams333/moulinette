@@ -1,8 +1,26 @@
 import socket
 import threading
 import base64
+import signal
+import sys
 
 client_count = 0
+server_socket = None
+clients = []
+
+def sigint_handler(sig, frame):
+	global server_socket
+	global clients
+
+	print("\b\bStopping server...")
+
+	for client in clients:
+		client.disconnect()
+		print("Closed connection with client " + str(client.id))
+
+	server_socket.close()
+	print("Server stopped")
+	sys.exit(0)
 
 class Client:
 	available = True
@@ -20,25 +38,38 @@ class Client:
 		msg = bytes(event, 'utf-8') + b'|' + data + b'\n'
 		self.socket.send(msg)
 
+	def disconnect(self):
+		self.socket.close()
+		self.available = False
+
 	def receive_data(self):
-		msg = self.socket.recv(1024)
-		if not msg:
-			return
-		msg = msg.decode()
-		event = msg.split('|', 1)[0]
-		data = msg.split('|', 1)[1]
-		data = base64.b64decode(data)
-		data = eval(data.decode())
-		
-		if event == "confirm_connection":
-			if data["id"] == self.id:
-				print("Client " + str(self.id) + " confirmed connection")
-			else:
-				print("Client " + str(self.id) + " failed to confirm connection")
+		try:
+			msg = self.socket.recv(1024)
+			if not msg:
 				self.available = False
+				print("Client " + str(self.id) + " closed connection")
+				return
+			msg = msg.decode()
+			event = msg.split('|', 1)[0]
+			data = msg.split('|', 1)[1]
+			data = base64.b64decode(data)
+			data = eval(data.decode())
+			
+			if event == "confirm_connection":
+				if data["id"] == self.id:
+					print("Client " + str(self.id) + " confirmed connection")
+				else:
+					print("Client " + str(self.id) + " failed to confirm connection")
+					self.available = False
+		except:
+			self.available = False
+			return
 
 def on_new_client(client_socket, client_address):
+	global clients
+
 	client = Client(client_socket, client_address)
+	clients.append(client)
 	print("New client identified as client " + str(client.id) + ". Sending welcome message...")
 	client.send("welcome", {"id": client.id})
 
@@ -48,12 +79,16 @@ def on_new_client(client_socket, client_address):
 	client_socket.close()
 
 def main():
+	global server_socket
+
+	signal.signal(signal.SIGINT, sigint_handler)
 	print("Starting server...")
 
 	host = socket.gethostname()
 	port = 4241
 
 	server_socket = socket.socket()
+	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	server_socket.bind((host, port))
 
 	server_socket.listen(100)
