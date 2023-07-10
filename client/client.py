@@ -3,6 +3,7 @@ import threading
 import base64
 import signal
 import sys
+import os
 
 client_id = -1
 client_socket = None
@@ -47,9 +48,14 @@ def receive_data():
 				send("confirm_connection", {"id": client_id})
 
 			if event == "subject":
+				subject_file = open(os.path.expanduser(data["subject_file"]), "w")
+				subject_file.write(data["subject"])
+				subject_file.close()
+
 				print("====================== New Subject ======================")
 				print("Assignment name: " + data["name"])
 				print("Excepted file: " + data["complete_file"])
+				print("Subject: " + data["subject_file"])
 				print("")
 				print("When you want to be graded, type 'grademe' and press enter")
 				print("=========================================================")
@@ -64,6 +70,11 @@ def main():
 	global client_socket
 
 	signal.signal(signal.SIGINT, sigint_handler)
+
+	if not os.path.isdir(os.path.expanduser("~/subject")):
+		os.mkdir(os.path.expanduser("~/subject"))
+	if not os.path.isdir(os.path.expanduser("~/rendu")):
+		os.mkdir(os.path.expanduser("~/rendu"))
 
 	host = socket.gethostname()
 	port = 4241
