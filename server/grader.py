@@ -25,7 +25,7 @@ def grade(subject, files, client):
 	if not found_exercise:
 		file.write("Error: no file named " + subject.name + ".c\n")
 		file.close()
-		client.send("grade_result", {"grade": false, "message": "No trace available"})
+		client.send("grade_result", {"grade": False, "message": "No trace available"})
 	
 	file.write("\n================= Compilation =================\n")
 
