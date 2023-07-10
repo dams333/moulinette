@@ -4,6 +4,8 @@ import base64
 import signal
 import sys
 
+import subject as subject_module
+
 client_count = 0
 server_socket = None
 clients = []
@@ -12,11 +14,12 @@ def sigint_handler(sig, frame):
 	global server_socket
 	global clients
 
-	print("\b\bStopping server...")
+	print("\rStopping server...")
 
 	for client in clients:
-		client.disconnect()
-		print("Closed connection with client " + str(client.id))
+		if client.available:
+			client.disconnect()
+			print("Closed connection with client " + str(client.id))
 
 	server_socket.close()
 	print("Server stopped")
@@ -24,6 +27,8 @@ def sigint_handler(sig, frame):
 
 class Client:
 	available = True
+	level = 0
+	subject = None
 
 	def __init__(self, socket, address):
 		global client_count
@@ -35,7 +40,7 @@ class Client:
 	def send(self, event, data):
 		data = str(data).encode()
 		data = base64.b64encode(data)
-		msg = bytes(event, 'utf-8') + b'|' + data + b'\n'
+		msg = bytes(event, 'utf-8') + b'|' + data
 		self.socket.send(msg)
 
 	def disconnect(self):
@@ -58,12 +63,18 @@ class Client:
 			if event == "confirm_connection":
 				if data["id"] == self.id:
 					print("Client " + str(self.id) + " confirmed connection")
+					self.send_subject()
 				else:
 					print("Client " + str(self.id) + " failed to confirm connection")
 					self.available = False
 		except:
 			self.available = False
 			return
+
+	def send_subject(self):
+		self.subject = subject_module.get_subject_for_level(self.level)
+		print("Sending subject " + self.subject.name + " to client " + str(self.id) + "...")
+		self.send("subject", self.subject.to_dict())
 
 def on_new_client(client_socket, client_address):
 	global clients

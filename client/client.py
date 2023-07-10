@@ -11,7 +11,7 @@ running = True
 def sigint_handler(sig, frame):
 	global client_socket
 
-	print("Stopping client...")
+	print("\rStopping client...")
 	client_socket.close()
 	print("Client stopped")
 	sys.exit(0)
@@ -21,7 +21,7 @@ def send(event, data):
 
 	data = str(data).encode()
 	data = base64.b64encode(data)
-	msg = bytes(event, 'utf-8') + b'|' + data + b'\n'
+	msg = bytes(event, 'utf-8') + b'|' + data
 	client_socket.send(msg)
 
 def receive_data():
@@ -43,12 +43,19 @@ def receive_data():
 			
 			if event == "welcome":
 				client_id = data["id"]
-				print("Server confirmed connection, waiting for it")
+				print("Server confirmed connection, waiting for exercice...")
 				send("confirm_connection", {"id": client_id})
+
+			if event == "subject":
+				print("====================== New Subject ======================")
+				print("Assignment name: " + data["name"])
+				print("Excepted file: " + data["complete_file"])
+				print("")
+				print("When you want to be graded, type 'grademe' and press enter")
+				print("=========================================================")
 
 		except:
 			break
-
 
 	client_socket.close()
 	running = False
