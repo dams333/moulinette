@@ -4,10 +4,12 @@ import base64
 import signal
 import sys
 import os
+import time
 
 client_id = -1
 client_socket = None
 running = True
+grading = False
 
 def sigint_handler(sig, frame):
 	global client_socket
@@ -29,6 +31,7 @@ def receive_data():
 	global client_id
 	global client_socket
 	global running
+	global grading
 
 	while True:
 		try:
@@ -65,6 +68,36 @@ def receive_data():
 
 	client_socket.close()
 	running = False
+	grading = False
+
+def wait_for_grade():
+	global grading
+
+	grading = True
+	print("Sending your works. Please wait for the grade (it can take a while)...")
+	while grading:
+		print("Waiting...")
+		time.sleep(3)
+
+def treat_command(command):
+	cmd = command.split(' ')[0]
+	args = command.split(' ')[1:]
+
+	if cmd == "help":
+		print("Available commands:")
+		print("\thelp: display this help")
+		print("\tgrademe: send your work to the server and wait for the grade")
+
+	if cmd == "grademe":
+		choice = input("Are you sure you want to be graded? (y/n) ")
+		if choice == "y" or choice == "Y" or choice == "yes" or choice == "Yes":
+			print("Sending your work to the server...")
+			files = {}
+			for file in os.listdir(os.path.expanduser("~/rendu")):
+				if file.endswith(".c"):
+					files[file] = open(os.path.expanduser("~/rendu/" + file), "r").read()
+			send("grade", {"files": files})
+			wait_for_grade()
 
 def main():
 	global client_socket
@@ -86,7 +119,8 @@ def main():
 	threading.Thread(target=receive_data).start()
 
 	while running:
-		pass
+		command = input()
+		treat_command(command)
 
 	print("Client stopped")
 

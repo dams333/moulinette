@@ -5,6 +5,7 @@ import signal
 import sys
 
 import subject as subject_module
+import grader as grader_module
 
 client_count = 0
 server_socket = None
@@ -29,6 +30,7 @@ class Client:
 	available = True
 	level = 0
 	subject = None
+	tries = 0
 
 	def __init__(self, socket, address):
 		global client_count
@@ -67,11 +69,19 @@ class Client:
 				else:
 					print("Client " + str(self.id) + " failed to confirm connection")
 					self.available = False
+
+			if event == "grade":
+				self.tries += 1
+				print("Client " + str(self.id) + " sent files for grading (" + str(self.tries) + " tries on exercise " + str(self.subject.name) + ")")
+				files = data["files"]
+				grader_module.grade(self.subject, files, self)
+
 		except:
 			self.available = False
 			return
 
 	def send_subject(self):
+		self.tries = 0
 		self.subject = subject_module.get_subject_for_level(self.level)
 		print("Sending subject " + self.subject.name + " to client " + str(self.id) + "...")
 		self.send("subject", self.subject.to_dict())
