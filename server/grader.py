@@ -102,18 +102,28 @@ def grade(subject, files, client):
 	execute_subject_subprocess.wait()
 
 	execute_user_cmd = "./user_exe > user_output"
-	execute_user_subprocess = subprocess.Popen(execute_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	execute_exit_code = execute_user_subprocess.wait()
-	if (execute_exit_code != 0):
+	try:
+		execute_user_subprocess = subprocess.Popen(execute_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+		execute_exit_code = execute_user_subprocess.wait(timeout=5)
+		if (execute_exit_code != 0):
+			trace_file.write("> " + execute_user_cmd + "\n")
+			execute_user_result = execute_user_subprocess.stdout.read().decode()
+			trace_file.write(execute_user_result)
+			trace_file.write("\n")
+			trace_file.write("END OF GRADING: execution failed\n")
+			trace_file.close()
+			os.chdir(save_current_dir)
+			client.send("grade_result", {"grade": False})
+			print("Client " + str(client.id) + " failed exercise " + subject.name + " (execution failed)")
+			return
+	except subprocess.TimeoutExpired:
 		trace_file.write("> " + execute_user_cmd + "\n")
-		execute_user_result = execute_user_subprocess.stdout.read().decode()
-		trace_file.write(execute_user_result)
-		trace_file.write("\n")
-		trace_file.write("END OF GRADING: execution failed\n")
+		trace_file.write("Program took too long to execute\n\n")
+		trace_file.write("END OF GRADING: timed out\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
-		print("Client " + str(client.id) + " failed exercise " + subject.name + " (execution failed)")
+		print("Client " + str(client.id) + " failed exercise " + subject.name + " (timed out)")
 		return
 
 	diff_cmd = "diff -U 3 user_output our_output"
