@@ -10,6 +10,9 @@ client_id = -1
 client_socket = None
 running = True
 grading = False
+current_name = ""
+current_complete_file = ""
+current_subject_file = ""
 
 def sigint_handler(sig, frame):
 	global client_socket
@@ -32,6 +35,9 @@ def receive_data():
 	global client_socket
 	global running
 	global grading
+	global current_name
+	global current_complete_file
+	global current_subject_file
 
 	while True:
 		try:
@@ -63,6 +69,26 @@ def receive_data():
 				print("When you want to be graded, type 'grademe' and press enter")
 				print("=========================================================")
 
+				current_name = data["name"]
+				current_complete_file = data["complete_file"]
+				current_subject_file = data["subject_file"]
+
+			if event == "grade_result":
+				graded = data["grade"]
+				if graded:
+					print("You passed the exercice! Please wait for the next one...")
+				else:
+					print("You failed the exercice! Please try again...")
+					print("====================== Subject ======================")
+					print("Assignment name: " + current_name)
+					print("Excepted file: " + current_complete_file)
+					print("Subject: " + current_subject_file)
+					print("")
+					print("When you want to be graded, type 'grademe' and press enter")
+					print("=========================================================")
+				grading = False
+
+
 		except:
 			break
 
@@ -91,7 +117,6 @@ def treat_command(command):
 	if cmd == "grademe":
 		choice = input("Are you sure you want to be graded? (y/n) ")
 		if choice == "y" or choice == "Y" or choice == "yes" or choice == "Yes":
-			print("Sending your work to the server...")
 			files = {}
 			for file in os.listdir(os.path.expanduser("~/rendu")):
 				if file.endswith(".c"):

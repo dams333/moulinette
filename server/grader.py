@@ -70,7 +70,7 @@ def grade(subject, files, client):
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (norminette failed)")
-		return
+		return 0
 
 	trace_file.write("\n================= Compilation =================\n")
 	compile_subject_cmd = "gcc -Wall -Wextra -Werror -o our_exe main.c function.c"
@@ -94,7 +94,7 @@ def grade(subject, files, client):
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
-		return
+		return 0
 
 	trace_file.write("\n================= Execution =================\n")
 	execute_subject_cmd = "./our_exe > our_output"
@@ -115,7 +115,7 @@ def grade(subject, files, client):
 			os.chdir(save_current_dir)
 			client.send("grade_result", {"grade": False})
 			print("Client " + str(client.id) + " failed exercise " + subject.name + " (execution failed)")
-			return
+			return 0
 	except subprocess.TimeoutExpired:
 		trace_file.write("> " + execute_user_cmd + "\n")
 		trace_file.write("Program took too long to execute\n\n")
@@ -124,7 +124,7 @@ def grade(subject, files, client):
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (timed out)")
-		return
+		return 0
 
 	diff_cmd = "diff -U 3 user_output our_output"
 	trace_file.write("> " + diff_cmd + "\n")
@@ -139,10 +139,11 @@ def grade(subject, files, client):
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (not the same output)")
-		return
+		return 0
 
 	trace_file.write("END OF GRADING: All tests passed\n")
 	trace_file.close()
 	client.send("grade_result", {"grade": True})
 	print("Client " + str(client.id) + " passed exercise " + subject.name)
 	os.chdir(save_current_dir)
+	return 1

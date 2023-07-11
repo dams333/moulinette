@@ -74,7 +74,9 @@ class Client:
 				self.tries += 1
 				print("Client " + str(self.id) + " sent files for grading (Try " + str(self.tries) + " on exercise " + str(self.subject.name) + ")")
 				files = data["files"]
-				grader_module.grade(self.subject, files, self)
+				if grader_module.grade(self.subject, files, self) == 1:
+					self.level += 1;
+					self.send_subject()
 
 		except:
 			self.available = False
