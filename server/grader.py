@@ -97,6 +97,38 @@ def grade(subject, files, client):
 		return
 
 	trace_file.write("\n================= Execution =================\n")
+	execute_subject_cmd = "./our_exe > our_output"
+	execute_subject_subprocess = subprocess.Popen(execute_subject_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	execute_subject_subprocess.wait()
 
+	execute_user_cmd = "./user_exe > user_output"
+	execute_user_subprocess = subprocess.Popen(execute_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	execute_exit_code = execute_user_subprocess.wait()
+	if (execute_exit_code != 0):
+		trace_file.write("END OF GRADING: execution failed, exit code: " + execute_exit_code + "\n")
+		trace_file.close()
+		os.chdir(save_current_dir)
+		client.send("grade_result", {"grade": False})
+		print("Client " + str(client.id) + " failed exercise " + subject.name + " (execution failed)")
+		return
+
+	diff_cmd = "diff -U 3 user_output our_output"
+	trace_file.write("> " + diff_cmd + "\n")
+	diff_subprocess = subprocess.Popen(diff_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	diff_exit_code = diff_subprocess.wait()
+	diff_result = diff_subprocess.stdout.read().decode()
+	trace_file.write(diff_result)
+	trace_file.write("\n")
+	if (diff_exit_code != 0):
+		trace_file.write("END OF GRADING: not the same output\n")
+		trace_file.close()
+		os.chdir(save_current_dir)
+		client.send("grade_result", {"grade": False})
+		print("Client " + str(client.id) + " failed exercise " + subject.name + " (not the same output)")
+		return
+
+	trace_file.write("END OF GRADING: All tests passed\n")
 	trace_file.close()
+	client.send("grade_result", {"grade": True})
+	print("Client " + str(client.id) + " passed exercise " + subject.name)
 	os.chdir(save_current_dir)
