@@ -105,7 +105,11 @@ def grade(subject, files, client):
 	execute_user_subprocess = subprocess.Popen(execute_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	execute_exit_code = execute_user_subprocess.wait()
 	if (execute_exit_code != 0):
-		trace_file.write("END OF GRADING: execution failed, exit code: " + execute_exit_code + "\n")
+		trace_file.write("> " + execute_user_cmd + "\n")
+		execute_user_result = execute_user_subprocess.stdout.read().decode()
+		trace_file.write(execute_user_result)
+		trace_file.write("\n")
+		trace_file.write("END OF GRADING: execution failed\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
 		client.send("grade_result", {"grade": False})
