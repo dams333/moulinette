@@ -51,7 +51,7 @@ class Client:
 
 	def receive_data(self):
 		try:
-			msg = self.socket.recv(1024)
+			msg = self.socket.recv(4096)
 			if not msg:
 				self.available = False
 				print("Client " + str(self.id) + " closed connection")
@@ -72,7 +72,7 @@ class Client:
 
 			if event == "grade":
 				self.tries += 1
-				print("Client " + str(self.id) + " sent files for grading (" + str(self.tries) + " tries on exercise " + str(self.subject.name) + ")")
+				print("Client " + str(self.id) + " sent files for grading (Try " + str(self.tries) + " on exercise " + str(self.subject.name) + ")")
 				files = data["files"]
 				grader_module.grade(self.subject, files, self)
 

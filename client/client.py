@@ -35,7 +35,7 @@ def receive_data():
 
 	while True:
 		try:
-			msg = client_socket.recv(1024)
+			msg = client_socket.recv(4096)
 			if not msg:
 				print("Server closed connection")
 				break
