@@ -85,7 +85,7 @@ def receive_data():
 					print("Subject: " + current_subject_file)
 					print("")
 					print("When you want to be graded, type 'grademe' and press enter")
-					print("=========================================================")
+					print("=====================================================")
 				grading = False
 
 
