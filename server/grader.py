@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 def get_trace_file(subject, client):
 	if not os.path.exists("traces"):
@@ -18,6 +19,14 @@ def create_file(subject, client, content):
 		os.mkdir("codes/" + str(client.id) + "/" + subject.name)
 	dirname = "codes/" + str(client.id) + "/" + subject.name
 	os.chdir(dirname)
+	if not os.path.exists("main.c"):
+		file = open("main.c", "w")
+		file.write(subject.main)
+		file.close()
+	if not os.path.exists("function.c"):
+		file = open("function.c", "w")
+		file.write(subject.function)
+		file.close()
 	filename = str(client.tries) + '_' + subject.name + ".c"
 	file = open(filename, "w")
 	file.write(content)
@@ -49,8 +58,11 @@ def grade(subject, files, client):
 	trace_file.write("\n================= Norm =================\n")
 	norm_cmd = "norminette -R CheckForbiddenSourceHeader " + src_file
 	trace_file.write("> " + norm_cmd + "\n")
-	norm_result = os.popen(norm_cmd).read()
+	norm_subprocess = subprocess.Popen(norm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	norm_subprocess.wait()
+	norm_result = norm_subprocess.stdout.read().decode()
 	trace_file.write(norm_result)
+	trace_file.write("\n")
 
 	if "Error!" in norm_result:
 		trace_file.write("END OF GRADING: norminette failed\n")
@@ -61,6 +73,30 @@ def grade(subject, files, client):
 		return
 
 	trace_file.write("\n================= Compilation =================\n")
+	compile_subject_cmd = "gcc -Wall -Wextra -Werror -o our_exe main.c function.c"
+	trace_file.write("> " + compile_subject_cmd + "\n")
+	compile_subject_subprocess = subprocess.Popen(compile_subject_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	compile_subject_subprocess.wait()
+	compile_subject_result = compile_subject_subprocess.stdout.read().decode()
+	trace_file.write(compile_subject_result)
+	trace_file.write("\n")
+
+	compile_user_cmd = "gcc -Wall -Wextra -Werror -o user_exe main.c " + src_file
+	trace_file.write("> " + compile_user_cmd + "\n")
+	compile_user_subprocess = subprocess.Popen(compile_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	compile_exit_code = compile_user_subprocess.wait()
+	compile_user_result = compile_user_subprocess.stdout.read().decode()
+	trace_file.write(compile_user_result)
+	trace_file.write("\n")
+	if (compile_exit_code != 0):
+		trace_file.write("END OF GRADING: compilation failed\n")
+		trace_file.close()
+		os.chdir(save_current_dir)
+		client.send("grade_result", {"grade": False})
+		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
+		return
+
+	trace_file.write("\n================= Execution =================\n")
 
 	trace_file.close()
 	os.chdir(save_current_dir)

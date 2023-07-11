@@ -1,9 +1,11 @@
 class Subject:
-	def __init__(self, name, subject):
-		self.name = name
-		self.subject = subject
-		self.complete_file = "~/rendu/" + name + ".c"
-		self.subject_file = "~/subject/" + name + ".txt"
+	def __init__(self, folder_path):
+		self.name = folder_path.split("/")[-1]
+		self.complete_file = "~/rendu/" + self.name + ".c"
+		self.subject_file = "~/subject/" + self.name + ".txt"
+		self.subject = open(folder_path + "/subject.txt", "r").read()
+		self.main = open(folder_path + "/main.c", "r").read()
+		self.function = open(folder_path + "/function.c", "r").read()
 
 	def to_dict(self):
 		return {
@@ -15,14 +17,4 @@ class Subject:
 
 
 def get_subject_for_level(level):
-	return Subject("ft_putchar",
-"""
-Assignment name       : ft_putchar
-Excepted files        : ft_putchar.c
-Allowed functions     : write
-------------------------------
-Write a function that displays on the stdout the character passed as a parameter.
-
-It will be prototyped as follows :
-void    ft_putchar(char c);
-""")
+	return Subject("subjects/level00/ft_putchar")

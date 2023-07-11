@@ -106,7 +106,7 @@ def main():
 	print("Starting server...")
 
 	host = socket.gethostname()
-	port = 4241
+	port = 2121
 
 	server_socket = socket.socket()
 	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

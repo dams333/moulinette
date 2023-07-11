@@ -110,7 +110,7 @@ def main():
 		os.mkdir(os.path.expanduser("~/rendu"))
 
 	host = socket.gethostname()
-	port = 4241
+	port = 2121
 
 	client_socket = socket.socket()
 	client_socket.connect((host, port))
