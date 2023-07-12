@@ -88,6 +88,9 @@ def receive_data():
 					print("=====================================================")
 				grading = False
 
+			if event == "finished":
+				print("You finished all the exercices! Congratulations!")
+				break
 
 		except:
 			break

@@ -83,10 +83,14 @@ class Client:
 			return
 
 	def send_subject(self):
-		self.tries = 0
-		self.subject = subject_module.get_subject_for_level(self.level)
-		print("Sending subject " + self.subject.name + " to client " + str(self.id) + "...")
-		self.send("subject", self.subject.to_dict())
+		if subject_module.is_subject_for_level(self.level):
+			self.tries = 0
+			self.subject = subject_module.get_subject_for_level(self.level)
+			print("Sending subject " + self.subject.name + " to client " + str(self.id) + "...")
+			self.send("subject", self.subject.to_dict())
+		else:
+			print("Client " + str(self.id) + " has finished all exercices")
+			self.send("finished", {})
 
 def on_new_client(client_socket, client_address):
 	global clients
@@ -106,6 +110,8 @@ def main():
 
 	signal.signal(signal.SIGINT, sigint_handler)
 	print("Starting server...")
+
+	subject_module.load_subjects()
 
 	host = socket.gethostname()
 	port = 2121
