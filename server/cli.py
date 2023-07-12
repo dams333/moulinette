@@ -29,7 +29,7 @@ def treat_command(command, clients):
 			return
 		print("Connected clients:")
 		for client in clients:
-			print("\t- Client " + str(client.id) + " | Level " + str(client.level) + " | Subject " + client.subject.name + " | Try " + str(client.tries))
+			print("\t- Client " + str(client.id) + " | Level " + str(client.level) + " | Subject " + client.subject.name + " | Tries " + str(client.tries))
 
 def cli_routine(clients):
 	while True:
