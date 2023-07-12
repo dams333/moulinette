@@ -1,7 +1,7 @@
 import server as server
 import subject as subjects_module
 
-def treat_command(command):
+def treat_command(command, clients):
 	cmd = command.split(' ')[0]
 	args = command.split(' ')[1:]
 
@@ -15,7 +15,7 @@ def treat_command(command):
 	if cmd == "infos":
 		print("Server infos:")
 		print("\tPort: " + str(server.port))
-		print("\tClients: " + str(len(server.clients)))
+		print("\tClients: " + str(len(clients)))
 		print("\tLevels: " + str(len(subjects_module.subjects)))
 		for level in subjects_module.subjects.keys():
 			print("\t\tLevel " + str(level) + ": ", end="")
@@ -24,14 +24,14 @@ def treat_command(command):
 			print("")
 
 	if cmd == "clients":
-		if len(server.clients) == 0:
+		if len(clients) == 0:
 			print("No clients connected")
 			return
 		print("Connected clients:")
-		for client in server.clients:
-			print("\tClient " + str(client.id) + " | Level " + str(client.level) + " | Subject " + client.subject.name + " | Tries " + str(client.tries))
+		for client in clients:
+			print("\t- Client " + str(client.id) + " | Level " + str(client.level) + " | Subject " + client.subject.name + " | Try " + str(client.tries))
 
-def cli_routine():
+def cli_routine(clients):
 	while True:
 		cmd = input()
-		treat_command(cmd)
+		treat_command(cmd, clients)

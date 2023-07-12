@@ -106,6 +106,7 @@ def on_new_client(client_socket, client_address):
 		client.receive_data()
 
 	client_socket.close()
+	clients.remove(client)
 
 def main():
 	global server_socket
@@ -125,7 +126,7 @@ def main():
 	server_socket.listen(100)
 	print("Server started, listening on port " + str(port) + "...")
 
-	threading.Thread(target=cli_module.cli_routine, args=()).start()
+	threading.Thread(target=cli_module.cli_routine, args=(clients,)).start()
 
 	while True:
 		client_socket, client_address = server_socket.accept()
