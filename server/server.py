@@ -6,10 +6,12 @@ import sys
 
 import subject as subject_module
 import grader as grader_module
+import cli as cli_module
 
 client_count = 0
 server_socket = None
 clients = []
+port = 2121
 
 def sigint_handler(sig, frame):
 	global server_socket
@@ -107,6 +109,7 @@ def on_new_client(client_socket, client_address):
 
 def main():
 	global server_socket
+	global port
 
 	signal.signal(signal.SIGINT, sigint_handler)
 	print("Starting server...")
@@ -114,7 +117,6 @@ def main():
 	subject_module.load_subjects()
 
 	host = socket.gethostname()
-	port = 2121
 
 	server_socket = socket.socket()
 	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -122,6 +124,8 @@ def main():
 
 	server_socket.listen(100)
 	print("Server started, listening on port " + str(port) + "...")
+
+	threading.Thread(target=cli_module.cli_routine, args=()).start()
 
 	while True:
 		client_socket, client_address = server_socket.accept()

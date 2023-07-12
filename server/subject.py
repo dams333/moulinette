@@ -36,7 +36,11 @@ def load_subjects():
 				print("Loaded subject " + subject + " for level " + str(level))
 
 def is_subject_for_level(level):
+	global subjects
+
 	return level in subjects.keys()
 
 def get_subject_for_level(level):
+	global subjects
+
 	return subjects[level][random.randint(0, len(subjects[level]) - 1)]
