@@ -41,6 +41,7 @@ def load_subjects():
 				subjects[level].append(Subject("subjects/" + folder + "/" + subject))
 				print("Loaded subject " + subject + " for level " + str(level))
 				count += 1
+	subjects = dict(sorted(subjects.items()))
 
 	print("Loaded " + str(count) + " subjects")
 

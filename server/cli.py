@@ -40,8 +40,12 @@ def treat_stdin(port):
 		if len(args) < 2 or len(args) > 3:
 			print("Usage: subject <client id> <level> [subject name]")
 			return
-		client_id = int(args[0])
-		level = int(args[1])
+		try:
+			client_id = int(args[0])
+			level = int(args[1])
+		except:
+			print("Usage: subject <client id> <level> [subject name]")
+			return
 
 		client = client_module.get_client_by_id(client_id)
 		if not client:

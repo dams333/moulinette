@@ -117,5 +117,6 @@ class Client:
 		if reset:
 			self.tries = 0
 		self.level = level
+		self.subject = subject
 		print("Sending subject " + self.subject.name + " to client " + str(self.id))
 		self.send("subject", self.subject.to_dict())
