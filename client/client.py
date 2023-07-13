@@ -3,6 +3,7 @@ import select
 import os
 import base64
 import sys
+import json
 
 buffer = ""
 current_name = ""
@@ -109,7 +110,8 @@ def main():
 	print("Created subject and rendu directories")
 
 	host = socket.gethostname()
-	port = 2121
+	config = json.load(open("config.json", "r"))
+	port = config["port"]
 
 	client_socket = socket.socket()
 	try:
