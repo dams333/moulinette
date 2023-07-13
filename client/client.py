@@ -109,9 +109,9 @@ def main():
 		os.mkdir(os.path.expanduser("~/rendu"))
 	print("Created subject and rendu directories")
 
-	host = socket.gethostname()
 	config = json.load(open("config.json", "r"))
 	port = config["port"]
+	host = config["host"]
 
 	client_socket = socket.socket()
 	try:
