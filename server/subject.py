@@ -22,11 +22,13 @@ class Subject:
 
 def load_subjects():
 	global subjects
+	print("Loading subjects...")
 
 	if os.path.isdir("subjects") == False:
 		print("Error: no subjects folder found")
 		exit(1)
 	
+	count = 0
 	for folder in os.listdir("subjects"):
 		if folder.startswith("level"):
 			level = int(folder[5:-1])
@@ -34,6 +36,9 @@ def load_subjects():
 			for subject in os.listdir("subjects/" + folder):
 				subjects[level].append(Subject("subjects/" + folder + "/" + subject))
 				print("Loaded subject " + subject + " for level " + str(level))
+				count += 1
+
+	print("Loaded " + str(count) + " subjects")
 
 def is_subject_for_level(level):
 	global subjects

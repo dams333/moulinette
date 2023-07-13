@@ -146,4 +146,8 @@ def grade(subject, files, client):
 	client.send("grade_result", {"grade": True})
 	print("Client " + str(client.id) + " passed exercise " + subject.name)
 	os.chdir(save_current_dir)
+
+	client.level += 1;
+	client.send_subject()
+
 	return 1
