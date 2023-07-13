@@ -1,5 +1,6 @@
 import subject as subject_module
 import client as client_module
+import cli as cli_module
 
 import json
 import socket
@@ -25,6 +26,7 @@ def main():
 
 	poll_obj = select.poll()
 	poll_obj.register(server_socket, select.POLLIN)
+	poll_obj.register(0, select.POLLIN)
 
 	running = True
 	while running:
@@ -43,6 +45,9 @@ def main():
 					client = client_module.register_client(client_socket)
 					poll_obj.register(client_socket, select.POLLIN | select.POLLOUT)
 					client.send("welcome", {"id": client.id})
+			elif fd == 0:
+				if event & select.POLLIN:
+					cli_module.treat_stdin(port)
 			else:
 				client = client_module.get_client_by_socket(fd)
 				if not client:

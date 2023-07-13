@@ -3,6 +3,10 @@ import random
 
 subjects = {}
 
+def get_subjects():
+	global subjects
+	return subjects
+
 class Subject:
 	def __init__(self, folder_path):
 		self.name = folder_path.split("/")[-1]
@@ -49,3 +53,11 @@ def get_subject_for_level(level):
 	global subjects
 
 	return subjects[level][random.randint(0, len(subjects[level]) - 1)]
+
+def get_subject_by_name(level, name):
+	global subjects
+
+	for subject in subjects[level]:
+		if subject.name == name:
+			return subject
+	return None

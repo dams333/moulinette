@@ -85,6 +85,11 @@ def treat_stdin(client_socket):
 	cmd = line.split(' ', 1)[0]
 	args = line.split(' ')[1:]
 
+	if cmd == "help":
+		print("Available commands:")
+		print("\thelp: display this help")
+		print("\tgrademe: send your work to the server for grading")
+
 	if cmd == "grademe":
 		files = {}
 		for file in os.listdir(os.path.expanduser("~/rendu")):

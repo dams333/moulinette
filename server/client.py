@@ -7,6 +7,19 @@ import threading
 client_count = 0
 clients = []
 
+def get_clients_status():
+	res = []
+
+	for client in clients:
+		res.append({
+			"id": client.id,
+			"level": client.level,
+			"tries": client.tries,
+			"subject": client.subject.name if client.subject else "Undefined"
+		})
+	
+	return res
+
 def get_client_by_id(id):
 	global clients
 	for client in clients:
@@ -26,6 +39,10 @@ def register_client(socket):
 	client = Client(socket)
 	clients.append(client)
 	return client
+
+def get_connected_clients_count():
+	global clients
+	return len(clients)
 
 class Client:
 	level = 0
@@ -93,5 +110,12 @@ class Client:
 			self.send("terminate", {})
 			return
 		self.subject = subject_module.get_subject_for_level(self.level)
+		print("Sending subject " + self.subject.name + " to client " + str(self.id))
+		self.send("subject", self.subject.to_dict())
+
+	def set_subject(self, level, subject, reset):
+		if reset:
+			self.tries = 0
+		self.level = level
 		print("Sending subject " + self.subject.name + " to client " + str(self.id))
 		self.send("subject", self.subject.to_dict())
