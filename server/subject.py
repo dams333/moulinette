@@ -35,7 +35,7 @@ def load_subjects():
 	count = 0
 	for folder in os.listdir("subjects"):
 		if folder.startswith("level"):
-			level = int(folder[5:-1])
+			level = int(folder.split("level")[1])
 			subjects[level] = []
 			for subject in os.listdir("subjects/" + folder):
 				subjects[level].append(Subject("subjects/" + folder + "/" + subject))

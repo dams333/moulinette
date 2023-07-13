@@ -30,7 +30,7 @@ Les sujets sont à ranger dans le dossier server en respectant l'arborescence su
 ```
 server
 └───subjects
-	└───levelXX
+	└───levelX
 		└───YY
 		    ├───subject.txt
 		    ├───main.c
@@ -39,7 +39,7 @@ server
 
 Précisions sur les fichiers:
 
--   Il est important de commencer par le `level00`
+-   Il est important de commencer par le `level0`
 -   Le `YY` correspond au nom de l'exercice, il ne doit pas contenir d'espace et se limiter aux caractères ASCII
 -   Le `subject.txt` est le sujet de l'exercice, il peut être au format de votre choix
 -   Le `main.c` est le fichier main de l'exercice, il doit utiliser la fonction demandée et écrire le résultat sur la sortie standard. Il doit inclure le prototype de la fonction à tester

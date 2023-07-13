@@ -51,6 +51,7 @@ def grade(subject, files, client):
 		trace_file.close()
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (no file named " + subject.name + ".c)")
+		return 0
 	
 	save_current_dir = os.getcwd()
 

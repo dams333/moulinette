@@ -111,13 +111,13 @@ def main():
 
 	config = json.load(open("config.json", "r"))
 	port = config["port"]
-	host = config["host"]
+	host = socket.gethostname() if config["host"] == "localhost" else config["host"]
 
 	client_socket = socket.socket()
 	try:
 		client_socket.connect((host, port))
-	except:
-		print("Connection failed")
+	except ConnectionRefusedError as e:
+		print("Connection failed: " + str(e))
 		return
 	print("Connection established with the server")
 
