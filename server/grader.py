@@ -76,7 +76,7 @@ def grade(subject, files, client):
 		return 0
 
 	trace_file.write("\n================= Compilation =================\n")
-	compile_subject_cmd = "gcc -Wall -Wextra -Werror -o our_exe main.c function.c"
+	compile_subject_cmd = subject.compiler + " " + subject.compiler_flags + " -o our_exe main.c function.c"
 	trace_file.write("> " + compile_subject_cmd + "\n")
 	compile_subject_subprocess = subprocess.Popen(compile_subject_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	compile_subject_subprocess.wait()
@@ -84,7 +84,7 @@ def grade(subject, files, client):
 	trace_file.write(compile_subject_result)
 	trace_file.write("\n")
 
-	compile_user_cmd = "gcc -Wall -Wextra -Werror -o user_exe main.c " + src_file
+	compile_user_cmd = subject.compiler + " " + subject.compiler_flags + " -o user_exe main.c " + src_file
 	trace_file.write("> " + compile_user_cmd + "\n")
 	compile_user_subprocess = subprocess.Popen(compile_user_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	compile_exit_code = compile_user_subprocess.wait()
@@ -98,6 +98,34 @@ def grade(subject, files, client):
 		client.send("grade_result", {"grade": False})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
 		return 0
+
+	trace_file.write("\n================= Functions =================\n")
+	compile_for_nm_cmd = subject.compiler + " " + subject.compiler_flags + " -c " + src_file + " -o nm_obj"
+	trace_file.write("> " + compile_for_nm_cmd + "\n")
+	compile_for_nm_subprocess = subprocess.Popen(compile_for_nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	compile_for_nm_subprocess.wait()
+	compile_for_nm_result = compile_for_nm_subprocess.stdout.read().decode()
+	trace_file.write(compile_for_nm_result)
+	trace_file.write("\n")
+
+	nm_cmd = "nm -u nm_obj"
+	trace_file.write("> " + nm_cmd + "\n")
+	nm_subprocess = subprocess.Popen(nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	nm_subprocess.wait()
+	nm_result = nm_subprocess.stdout.read().decode()
+	trace_file.write(nm_result)
+	trace_file.write("\n")
+
+	for symbol in nm_result.split("\n"):
+		if symbol == "":
+			continue
+		if not symbol in subject.authorized_functions:
+			trace_file.write("END OF GRADING: unauthorized function " + symbol + "\n")
+			trace_file.close()
+			os.chdir(save_current_dir)
+			client.send("grade_result", {"grade": False})
+			print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + symbol + ")")
+			return 0
 
 	trace_file.write("\n================= Execution =================\n")
 	execute_subject_cmd = "./our_exe > our_output"

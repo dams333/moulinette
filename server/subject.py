@@ -1,5 +1,6 @@
 import os
 import random
+import json
 
 subjects = {}
 
@@ -15,6 +16,20 @@ class Subject:
 		self.subject = open(folder_path + "/subject.txt", "r").read()
 		self.main = open(folder_path + "/main.c", "r").read()
 		self.function = open(folder_path + "/function.c", "r").read()
+		self.send_trace = False
+		self.authorized_functions = []
+		self.compiler = "gcc"
+		self.compiler_flags = "-Wall -Wextra -Werror"
+		if os.path.exists(folder_path + "/config.json"):
+			config = json.load(open(folder_path + "/config.json", "r"))
+			if "send_trace" in config.keys():
+				self.send_trace = config["send_trace"]
+			if "authorized_functions" in config.keys():
+				self.authorized_functions = config["authorized_functions"]
+			if "compiler" in config.keys():
+				self.compiler = config["compiler"]
+			if "compiler_flags" in config.keys():
+				self.compiler_flags = config["compiler_flags"]
 
 	def to_dict(self):
 		return {
