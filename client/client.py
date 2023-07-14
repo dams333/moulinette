@@ -4,6 +4,8 @@ import os
 import base64
 import sys
 import json
+import threading
+import time
 
 buffer = ""
 current_name = ""
@@ -22,6 +24,7 @@ def treat_message(message, client_socket):
 	global current_complete_file
 	global current_subject_file
 	global running
+	global grading
 
 	event = message.split('|', 1)[0]
 	data = message.split('|', 1)[1]
@@ -50,6 +53,7 @@ def treat_message(message, client_socket):
 		current_subject_file = data["subject_file"]
 
 	if event == "grade_result":
+		grading = False
 		graded = data["grade"]
 		if graded:
 			print("You passed the exercice! Please wait for the next one...")
@@ -81,7 +85,20 @@ def receive_data(client_socket):
 		treat_message(line, client_socket)
 	return 1
 
+ask_for_grade = False
+grading = False
+
+def wait_for_grade():
+	global grading
+
+	grading = True
+	while grading:
+		print("Waiting...")
+		time.sleep(1)
+
 def treat_stdin(client_socket):
+	global ask_for_grade
+
 	line = sys.stdin.readline().strip()
 	cmd = line.split(' ', 1)[0]
 	args = line.split(' ')[1:]
@@ -90,14 +107,36 @@ def treat_stdin(client_socket):
 		print("Available commands:")
 		print("\thelp: display this help")
 		print("\tgrademe: send your work to the server for grading")
+		return
 
 	if cmd == "grademe":
-		files = {}
-		for file in os.listdir(os.path.expanduser("~/rendu")):
-			if file.endswith(".c"):
-				files[file] = open(os.path.expanduser("~/rendu/" + file), "r").read()
-		send_data(client_socket, "grade", {"files": files})
-		print("You work has been sent to the server, waiting for the grade...")
+		ask_for_grade = True
+		print("Do you want to be graded? (y/n) ", end="", flush=True)
+		return
+
+	yes_cmds = ["y", "yes", "Y", "Yes", "YES"]
+	no_cmds = ["n", "no", "N", "No", "NO"]
+	if cmd in yes_cmds or cmd in no_cmds:
+		if ask_for_grade:
+			ask_for_grade = False
+			if cmd in no_cmds:
+				print("Cancelled grading request")
+				return
+			if cmd in yes_cmds:
+				files = {}
+				for file in os.listdir(os.path.expanduser("~/rendu")):
+					if file.endswith(".c"):
+						files[file] = open(os.path.expanduser("~/rendu/" + file), "r").read()
+				send_data(client_socket, "grade", {"files": files})
+				print("You work has been sent to the server, waiting for the grade...")
+				threading.Thread(target=wait_for_grade).start()
+				return
+	elif ask_for_grade:
+		print("Do you want to be graded? (y/n) ", end="", flush=True)
+		return
+
+	print("Unknown command, see 'help'")
+
 
 def main():
 	global running

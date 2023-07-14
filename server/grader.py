@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 def get_trace_file(subject, client):
 	if not os.path.exists("traces"):
@@ -34,6 +35,7 @@ def create_file(subject, client, content):
 	return filename
 
 def grade(subject, files, client):
+	time.sleep(2)
 	trace_file = get_trace_file(subject, client)
 
 	trace_file.write("Grading " + subject.name + " for client " + str(client.id) + ", try " + str(client.tries) + "\n")
