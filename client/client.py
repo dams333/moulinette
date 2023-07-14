@@ -129,7 +129,7 @@ def main():
 		try:
 			poll_state = poll_obj.poll()
 		except KeyboardInterrupt:
-			print("\r")
+			print("\r", end="")
 			running = False
 			break
 		
