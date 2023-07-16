@@ -7,6 +7,18 @@ import json
 import threading
 import time
 
+class style():
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    WHITE = '\033[37m'
+    UNDERLINE = '\033[4m'
+    RESET = '\033[0m' 
+
 buffer = ""
 current_name = ""
 current_complete_file = ""
@@ -18,6 +30,18 @@ def send_data(client_socket, event, data):
 	data = base64.b64encode(data)
 	msg = bytes(event, 'utf-8') + b'|' + data + b'\r\n'
 	client_socket.send(msg)
+
+def print_subject():
+	global current_name
+	global current_complete_file
+	global current_subject_file
+
+	print("=============================================================")
+	print("Your current assignment is: " + style.GREEN + current_name + style.RESET)
+	print("Your subject is located at: " + style.GREEN + current_subject_file + style.RESET)
+	print("You must submit your work in the rendu folder (" + style.RED + current_complete_file + style.RESET + ")")
+	print("=============================================================")
+	print("You can now work on your assignment, when you are ready to be graded, type '" + style.GREEN + "grademe" + style.RESET + "' and press enter")
 
 def treat_message(message, client_socket):
 	global current_name
@@ -32,43 +56,31 @@ def treat_message(message, client_socket):
 	data = eval(data.decode())
 
 	if event == "welcome":
-		print("Server confirmed connection, id: " + str(data["id"]))
+		print("Server confirmed that you are a new client, id: " + str(data["id"]))
 		send_data(client_socket, "welcome", {"id": data["id"]})
 
 	if event == "subject":
 		subject_file = open(os.path.expanduser(data["subject_file"]), "w")
 		subject_file.write(data["subject"])
 		subject_file.close()
-
-		print("====================== New Subject ======================")
-		print("Assignment name: " + data["name"])
-		print("Excepted file: " + data["complete_file"])
-		print("Subject: " + data["subject_file"])
-		print("")
-		print("When you want to be graded, type 'grademe' and press enter")
-		print("=========================================================")
-
 		current_name = data["name"]
 		current_complete_file = data["complete_file"]
 		current_subject_file = data["subject_file"]
+		print_subject()
 
 	if event == "grade_result":
 		grading = False
 		graded = data["grade"]
 		if graded:
+			print(style.GREEN + ">>>>>>>>>> SUCCESS <<<<<<<<<<" + style.RESET)
 			print("You passed the exercice! Please wait for the next one...")
 		else:
+			print(style.RED + ">>>>>>>>>> FAILURE <<<<<<<<<<" + style.RESET)
 			print("You failed the exercice! Please try again...")
-			print("====================== Subject ======================")
-			print("Assignment name: " + current_name)
-			print("Excepted file: " + current_complete_file)
-			print("Subject: " + current_subject_file)
-			print("")
-			print("When you want to be graded, type 'grademe' and press enter")
-			print("=====================================================")
+			print_subject()
 
 	if event == "terminate":
-		print("You passed all levels, congratulations!")
+		print(style.MAGENTA + "You passed all levels, congratulations!" + style.RESET)
 		running = False
 	
 
@@ -104,14 +116,14 @@ def treat_stdin(client_socket):
 	args = line.split(' ')[1:]
 
 	if cmd == "help":
-		print("Available commands:")
-		print("\thelp: display this help")
-		print("\tgrademe: send your work to the server for grading")
+		print("The following commands are available:")
+		print(style.GREEN + "\thelp" + style.RESET + ": display this help")
+		print(style.GREEN + "\tgrademe" + style.RESET + ": send your work to the server for grading")
 		return
 
 	if cmd == "grademe":
 		ask_for_grade = True
-		print("Do you want to be graded? (y/n) ", end="", flush=True)
+		print(style.RED + "Do you want to be graded?" + style.RESET + " (y/n) ", end="", flush=True)
 		return
 
 	yes_cmds = ["y", "yes", "Y", "Yes", "YES"]
@@ -132,21 +144,20 @@ def treat_stdin(client_socket):
 				threading.Thread(target=wait_for_grade).start()
 				return
 	elif ask_for_grade:
-		print("Do you want to be graded? (y/n) ", end="", flush=True)
+		print(style.RED + "Do you want to be graded?" + style.RESET + " (y/n) ", end="", flush=True)
 		return
 
-	print("Unknown command, see 'help'")
+	print("Unknown command, see '" + style.RED + "help" + style.RESET + "'")
 
 
 def main():
 	global running
+	global grading
 
-	print("Initializing client...")
 	if not os.path.isdir(os.path.expanduser("~/subject")):
 		os.mkdir(os.path.expanduser("~/subject"))
 	if not os.path.isdir(os.path.expanduser("~/rendu")):
 		os.mkdir(os.path.expanduser("~/rendu"))
-	print("Created subject and rendu directories")
 
 	config = json.load(open("config.json", "r"))
 	port = config["port"]
@@ -165,6 +176,8 @@ def main():
 	poll_obj.register(0, select.POLLIN)
 
 	while running:
+		if not grading and not ask_for_grade:
+			print(style.YELLOW + "API's shell" + style.RESET + "> ", end="", flush=True)
 		try:
 			poll_state = poll_obj.poll()
 		except KeyboardInterrupt:
@@ -172,6 +185,7 @@ def main():
 			running = False
 			break
 		
+		print("\r", end="")
 		for fd, event in poll_state:
 			if fd == client_socket.fileno():
 				if event & select.POLLIN:
@@ -182,7 +196,7 @@ def main():
 				if event & select.POLLIN:
 					treat_stdin(client_socket)
 
-	print("Connection closed")
+	print(style.RED + "Connection closed" + style.RESET)
 
 if __name__ == '__main__':
 	main()
