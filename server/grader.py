@@ -180,6 +180,6 @@ def grade(subject, files, client):
 
 	client.tries = 0
 	client.level += 1;
-	client.send_subject()
+	client.send_subject(False)
 
 	return 1

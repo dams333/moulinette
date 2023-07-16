@@ -34,7 +34,7 @@ def treat_stdin(port):
 		
 		print("Connected clients:")
 		for info in client_module.get_clients_status():
-			print("\tClient " + str(info["id"]) + " | Level " + str(info["level"]) + " | Tries " + str(info["tries"]) + " | Subject " + info["subject"])
+			print("\tClient " + str(info["id"]) + " | Level " + str(info["level"]) + " | Tries " + str(info["tries"]) + " | Subject " + info["subject"] + " | " + ("ONLINE" if info["connected"] else "OFFLINE"))
 
 	if cmd == "subject":
 		if len(args) < 2 or len(args) > 3:

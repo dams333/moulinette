@@ -15,7 +15,8 @@ def get_clients_status():
 			"id": client.id,
 			"level": client.level,
 			"tries": client.tries,
-			"subject": client.subject.name if client.subject else "Undefined"
+			"subject": client.subject.name if client.subject else "Undefined",
+			"connected": client.connected,
 		})
 	
 	return res
@@ -27,6 +28,13 @@ def get_client_by_id(id):
 			return client
 	return None
 
+def get_client_by_address(address):
+	global clients
+	for client in clients:
+		if client.address[0] == address[0]:
+			return client
+	return None
+
 def get_client_by_socket(fd):
 	global clients
 	for client in clients:
@@ -34,9 +42,9 @@ def get_client_by_socket(fd):
 			return client
 	return None
 
-def register_client(socket):
+def register_client(socket, address):
 	global clients
-	client = Client(socket)
+	client = Client(socket, address)
 	clients.append(client)
 	return client
 
@@ -48,8 +56,9 @@ class Client:
 	level = 0
 	tries = 0
 	subject = None
+	connected = True
 
-	def __init__(self, socket):
+	def __init__(self, socket, address):
 		global client_count
 		global clients
 
@@ -57,6 +66,7 @@ class Client:
 		client_count += 1
 		self.socket = socket
 		self.buffer = ""
+		self.address = address
 		print("Client " + str(self.id) + " connected")
 
 	def read_data(self):
@@ -82,7 +92,7 @@ class Client:
 				print("Receive invalid welcome message from client " + str(self.id) + ", disconnecting")
 				return 0
 			print("Confirmed handshake with client " + str(self.id))
-			self.send_subject()
+			self.send_subject(data["reconnect"])
 
 		if event == "grade":
 			self.tries += 1
@@ -92,24 +102,26 @@ class Client:
 		return 1
 
 	def disconnect(self):
-		global clients
-
 		print("Client " + str(self.id) + " disconnected")
 		self.socket.close()
-		clients.remove(self)
+		self.socket = None
+		self.connected = False
 
 	def send(self, event, data):
+		if not self.connected:
+			return
 		data = str(data).encode()
 		data = base64.b64encode(data)
 		msg = bytes(event, 'utf-8') + b'|' + data + b'\r\n'
 		self.socket.send(msg)
 
-	def send_subject(self):
-		if not subject_module.is_subject_for_level(self.level):
-			print("Client " + str(self.id) + " passed all levels")
-			self.send("terminate", {})
-			return
-		self.subject = subject_module.get_subject_for_level(self.level)
+	def send_subject(self, reconnect):
+		if not reconnect:
+			if not subject_module.is_subject_for_level(self.level):
+				print("Client " + str(self.id) + " passed all levels")
+				self.send("terminate", {})
+				return
+			self.subject = subject_module.get_subject_for_level(self.level)
 		print("Sending subject " + self.subject.name + " to client " + str(self.id))
 		self.send("subject", self.subject.to_dict())
 

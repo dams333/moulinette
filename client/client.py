@@ -57,7 +57,11 @@ def treat_message(message, client_socket):
 
 	if event == "welcome":
 		print("Server confirmed that you are a new client, id: " + str(data["id"]))
-		send_data(client_socket, "welcome", {"id": data["id"]})
+		send_data(client_socket, "welcome", {"id": data["id"], "reconnect": False})
+
+	if event == "welcome_back":
+		print("Server confirmed that you reconnected, id: " + str(data["id"]))
+		send_data(client_socket, "welcome", {"id": data["id"], "reconnect": True})
 
 	if event == "subject":
 		subject_file = open(os.path.expanduser(data["subject_file"]), "w")
@@ -81,6 +85,10 @@ def treat_message(message, client_socket):
 
 	if event == "terminate":
 		print(style.MAGENTA + "You passed all levels, congratulations!" + style.RESET)
+		running = False
+
+	if event == "already-connected":
+		print(style.RED + "You are already connected to the server, please disconnect first" + style.RESET)
 		running = False
 	
 
