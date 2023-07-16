@@ -175,7 +175,7 @@ def main():
 	try:
 		client_socket.connect((host, port))
 	except ConnectionRefusedError as e:
-		print("Connection failed: " + str(e))
+		print(style.RED + "Connection failed: " + str(e) + style.RESET)
 		return
 	print("Connection established with the server")
 
