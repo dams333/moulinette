@@ -75,11 +75,32 @@ def treat_message(message, client_socket):
 	if event == "grade_result":
 		grading = False
 		graded = data["grade"]
+		trace_content = data["trace"]
+		try_count = data["try"]
+
 		if graded:
 			print(style.GREEN + ">>>>>>>>>> SUCCESS <<<<<<<<<<" + style.RESET)
+			if trace_content is None:
+				print("No trace available for this exercice")
+			else:
+				trace_name = os.path.expanduser("~/traces/" + str(try_count) + "_" + current_name + ".txt")
+				trace_file = open(trace_name, "w")
+				trace_file.write(trace_content)
+				trace_file.close()
+				print("Trace saved (" + style.CYAN + trace_name + style.RESET + ")")
 			print("You passed the exercice! Please wait for the next one...")
+
+
 		else:
 			print(style.RED + ">>>>>>>>>> FAILURE <<<<<<<<<<" + style.RESET)
+			if trace_content is None:
+				print("No trace available for this exercice")
+			else:
+				trace_name = os.path.expanduser("~/traces/" + str(try_count) + "_" + current_name + ".txt")
+				trace_file = open(trace_name, "w")
+				trace_file.write(trace_content)
+				trace_file.close()
+				print("Trace saved (" + style.CYAN + trace_name + style.RESET + ")")
 			print("You failed the exercice! Please try again...")
 			print_subject()
 
@@ -166,6 +187,8 @@ def main():
 		os.mkdir(os.path.expanduser("~/subject"))
 	if not os.path.isdir(os.path.expanduser("~/rendu")):
 		os.mkdir(os.path.expanduser("~/rendu"))
+	if not os.path.isdir(os.path.expanduser("~/traces")):
+		os.mkdir(os.path.expanduser("~/traces"))
 
 	config = json.load(open("config.json", "r"))
 	port = config["port"]

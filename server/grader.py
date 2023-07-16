@@ -34,6 +34,12 @@ def create_file(subject, client, content):
 	file.close()
 	return filename
 
+def get_trace_content(trace_name):
+	trace_file = open(trace_name, "r")
+	content = trace_file.read()
+	trace_file.close()
+	return content
+
 def grade(subject, files, client):
 	time.sleep(2)
 	trace_file = get_trace_file(subject, client)
@@ -51,7 +57,8 @@ def grade(subject, files, client):
 	if not found_exercise:
 		trace_file.write("END OF GRADING: no file named " + subject.name + ".c\n")
 		trace_file.close()
-		client.send("grade_result", {"grade": False})
+		trace = get_trace_content(trace_file.name)
+		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (no file named " + subject.name + ".c)")
 		return 0
 	
@@ -71,7 +78,8 @@ def grade(subject, files, client):
 		trace_file.write("END OF GRADING: norminette failed\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
-		client.send("grade_result", {"grade": False})
+		trace = get_trace_content(trace_file.name)
+		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (norminette failed)")
 		return 0
 
@@ -95,7 +103,8 @@ def grade(subject, files, client):
 		trace_file.write("END OF GRADING: compilation failed\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
-		client.send("grade_result", {"grade": False})
+		trace = get_trace_content(trace_file.name)
+		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
 		return 0
 
@@ -123,7 +132,8 @@ def grade(subject, files, client):
 			trace_file.write("END OF GRADING: unauthorized function " + symbol + "\n")
 			trace_file.close()
 			os.chdir(save_current_dir)
-			client.send("grade_result", {"grade": False})
+			trace = get_trace_content(trace_file.name)
+			client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 			print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + symbol + ")")
 			return 0
 
@@ -141,10 +151,10 @@ def grade(subject, files, client):
 			execute_user_result = execute_user_subprocess.stdout.read().decode()
 			trace_file.write(execute_user_result)
 			trace_file.write("\n")
-			trace_file.write("END OF GRADING: execution failed\n")
 			trace_file.close()
 			os.chdir(save_current_dir)
-			client.send("grade_result", {"grade": False})
+			trace = get_trace_content(trace_file.name)
+			client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 			print("Client " + str(client.id) + " failed exercise " + subject.name + " (execution failed)")
 			return 0
 	except subprocess.TimeoutExpired:
@@ -153,7 +163,8 @@ def grade(subject, files, client):
 		trace_file.write("END OF GRADING: timed out\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
-		client.send("grade_result", {"grade": False})
+		trace = get_trace_content(trace_file.name)
+		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (timed out)")
 		return 0
 
@@ -168,15 +179,17 @@ def grade(subject, files, client):
 		trace_file.write("END OF GRADING: not the same output\n")
 		trace_file.close()
 		os.chdir(save_current_dir)
-		client.send("grade_result", {"grade": False})
+		trace = get_trace_content(trace_file.name)
+		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (not the same output)")
 		return 0
 
 	trace_file.write("END OF GRADING: All tests passed\n")
 	trace_file.close()
-	client.send("grade_result", {"grade": True})
-	print("Client " + str(client.id) + " passed exercise " + subject.name)
 	os.chdir(save_current_dir)
+	trace = get_trace_content(trace_file.name)
+	client.send("grade_result", {"grade": True, "trace": trace if subject.send_trace else None, "try": client.tries})
+	print("Client " + str(client.id) + " passed exercise " + subject.name)
 
 	client.tries = 0
 	client.level += 1;
