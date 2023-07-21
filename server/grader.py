@@ -108,34 +108,34 @@ def grade(subject, files, client):
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
 		return 0
 
-	trace_file.write("\n================= Functions =================\n")
-	compile_for_nm_cmd = subject.compiler + " " + subject.compiler_flags + " -c " + src_file + " -o nm_obj"
-	trace_file.write("> " + compile_for_nm_cmd + "\n")
-	compile_for_nm_subprocess = subprocess.Popen(compile_for_nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	compile_for_nm_subprocess.wait()
-	compile_for_nm_result = compile_for_nm_subprocess.stdout.read().decode()
-	trace_file.write(compile_for_nm_result)
-	trace_file.write("\n")
+	# trace_file.write("\n================= Functions =================\n")
+	# compile_for_nm_cmd = subject.compiler + " " + subject.compiler_flags + " -c " + src_file + " -o nm_obj"
+	# trace_file.write("> " + compile_for_nm_cmd + "\n")
+	# compile_for_nm_subprocess = subprocess.Popen(compile_for_nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	# compile_for_nm_subprocess.wait()
+	# compile_for_nm_result = compile_for_nm_subprocess.stdout.read().decode()
+	# trace_file.write(compile_for_nm_result)
+	# trace_file.write("\n")
 
-	nm_cmd = "nm -u nm_obj"
-	trace_file.write("> " + nm_cmd + "\n")
-	nm_subprocess = subprocess.Popen(nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	nm_subprocess.wait()
-	nm_result = nm_subprocess.stdout.read().decode()
-	trace_file.write(nm_result)
-	trace_file.write("\n")
+	# nm_cmd = "nm -u nm_obj"
+	# trace_file.write("> " + nm_cmd + "\n")
+	# nm_subprocess = subprocess.Popen(nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	# nm_subprocess.wait()
+	# nm_result = nm_subprocess.stdout.read().decode()
+	# trace_file.write(nm_result)
+	# trace_file.write("\n")
 
-	for symbol in nm_result.split("\n"):
-		if symbol == "":
-			continue
-		if not symbol in subject.authorized_functions:
-			trace_file.write("END OF GRADING: unauthorized function " + symbol + "\n")
-			trace_file.close()
-			os.chdir(save_current_dir)
-			trace = get_trace_content(trace_file.name)
-			client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
-			print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + symbol + ")")
-			return 0
+	# for symbol in nm_result.split("\n"):
+	# 	if symbol == "":
+	# 		continue
+	# 	if not symbol in subject.authorized_functions:
+	# 		trace_file.write("END OF GRADING: unauthorized function " + symbol + "\n")
+	# 		trace_file.close()
+	# 		os.chdir(save_current_dir)
+	# 		trace = get_trace_content(trace_file.name)
+	# 		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
+	# 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + symbol + ")")
+	# 		return 0
 
 	trace_file.write("\n================= Execution =================\n")
 	execute_subject_cmd = "./our_exe > our_output"

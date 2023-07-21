@@ -4,7 +4,7 @@ Le but de ce projet est de fournir un outil client-serveur permettant de corrige
 
 # 2. État d'avancement du projet
 
-Le projet est actuellement hardcodé pour corriger des projets en C. Il est également hardcodé pour tester avec la norminette, les flags de GCC, ...
+Le projet est actuellement hardcodé pour corriger des projets en C.
 Le projet est fonctionnel dans ce cadre mais reste basique et demande encore du travail pour le rendre plus agréable à utiliser.
 
 # 3. Utilisation du projet
@@ -48,7 +48,7 @@ Précisions sur les fichiers:
 -   Le `function.c` est le fichier contenant la fonction de référence, celle-ci doit être prototypée de la même façon que demandé dans le sujet
 -   Le `config.json` est facultatif, il peut contenir les clés suivantes:
     -   `send_trace` (booléen) Si `true`, le serveur enverra la trace de l'exécution du programme au client
-    -   `authorized_functions` (tableau de chaînes de caractères) Liste des symboles autorisées dans le fichier `function.c` retournés par `nm -u`. Attention les symboles doivent respectés le formatage de `nm -u` (ex: `_write`)
+    -   `authorized_functions` (tableau de chaînes de caractères) Liste des symboles autorisées dans le fichier `function.c` retournés par `nm -u`. Attention les symboles doivent respectés le formatage de `nm -u` (ex: `_write`) **[Actuellement désactivé car non fonctionnel selon la version de `nm`]**
     -   `compiler` (chaîne de caractères) Commande à utiliser pour compiler le programme
     -   `compiler_flags` (chaîne de caractères) Liste des flags à utiliser pour compiler le programme
 
