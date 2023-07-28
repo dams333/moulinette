@@ -1,6 +1,10 @@
 import os
 import subprocess
 import time
+import clang.cindex
+from clang.cindex import Index,Config,CursorKind
+
+Config.set_library_path('/opt/homebrew/opt/llvm/lib')
 
 def get_trace_file(subject, client):
 	if not os.path.exists("traces"):
@@ -108,34 +112,42 @@ def grade(subject, files, client):
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
 		return 0
 
-	# trace_file.write("\n================= Functions =================\n")
-	# compile_for_nm_cmd = subject.compiler + " " + subject.compiler_flags + " -c " + src_file + " -o nm_obj"
-	# trace_file.write("> " + compile_for_nm_cmd + "\n")
-	# compile_for_nm_subprocess = subprocess.Popen(compile_for_nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	# compile_for_nm_subprocess.wait()
-	# compile_for_nm_result = compile_for_nm_subprocess.stdout.read().decode()
-	# trace_file.write(compile_for_nm_result)
-	# trace_file.write("\n")
+	trace_file.write("\n================= Functions =================\n")
+	code = open(src_file, "r").read()
+	index = clang.cindex.Index.create()
+	tu = index.parse('tmp.c', args=['-std=c11'], unsaved_files=[('tmp.c', code)])
+	function_definitions = []
+	for node in tu.cursor.walk_preorder():
+		if node.kind == clang.cindex.CursorKind.FUNCTION_DECL and node.location.file.name == "tmp.c":
+			function_name = node.mangled_name
+			if function_name[0] == '_':
+				function_name = function_name[1:]
+			function_definitions.append(function_name)
 
-	# nm_cmd = "nm -u nm_obj"
-	# trace_file.write("> " + nm_cmd + "\n")
-	# nm_subprocess = subprocess.Popen(nm_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	# nm_subprocess.wait()
-	# nm_result = nm_subprocess.stdout.read().decode()
-	# trace_file.write(nm_result)
-	# trace_file.write("\n")
+	functions_used = []
+	for node in tu.cursor.walk_preorder():
+		if node.kind == clang.cindex.CursorKind.CALL_EXPR and node.location.file.name == "tmp.c":
+			function_name = node.displayname
+			if function_name not in function_definitions:
+				functions_used.append(function_name)
 
-	# for symbol in nm_result.split("\n"):
-	# 	if symbol == "":
-	# 		continue
-	# 	if not symbol in subject.authorized_functions:
-	# 		trace_file.write("END OF GRADING: unauthorized function " + symbol + "\n")
-	# 		trace_file.close()
-	# 		os.chdir(save_current_dir)
-	# 		trace = get_trace_content(trace_file.name)
-	# 		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
-	# 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + symbol + ")")
-	# 		return 0
+	if len(functions_used) == 0:
+		trace_file.write("No function used\n")
+	else:
+		trace_file.write("Functions used:\n")
+		for function in functions_used:
+			trace_file.write("\t- " + function + "\n")
+	trace_file.write("\n")
+
+	for function in functions_used:
+		if function not in subject.authorized_functions:
+			trace_file.write("END OF GRADING: unauthorized function " + function + "\n")
+			trace_file.close()
+			os.chdir(save_current_dir)
+			trace = get_trace_content(trace_file.name)
+			client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
+			print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + function + ")")
+			return 0
 
 	trace_file.write("\n================= Execution =================\n")
 	execute_subject_cmd = "./our_exe > our_output"
