@@ -1,10 +1,6 @@
 import os
 import subprocess
 import time
-import clang.cindex
-from clang.cindex import Index,Config,CursorKind
-
-Config.set_library_path('/opt/homebrew/opt/llvm/lib')
 
 def get_trace_file(subject, client):
 	if not os.path.exists("traces"):
@@ -111,43 +107,6 @@ def grade(subject, files, client):
 		client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
 		print("Client " + str(client.id) + " failed exercise " + subject.name + " (compilation failed)")
 		return 0
-
-	trace_file.write("\n================= Functions =================\n")
-	code = open(src_file, "r").read()
-	index = clang.cindex.Index.create()
-	tu = index.parse('tmp.c', args=['-std=c11'], unsaved_files=[('tmp.c', code)])
-	function_definitions = []
-	for node in tu.cursor.walk_preorder():
-		if node.kind == clang.cindex.CursorKind.FUNCTION_DECL and node.location.file.name == "tmp.c":
-			function_name = node.mangled_name
-			if function_name[0] == '_':
-				function_name = function_name[1:]
-			function_definitions.append(function_name)
-
-	functions_used = []
-	for node in tu.cursor.walk_preorder():
-		if node.kind == clang.cindex.CursorKind.CALL_EXPR and node.location.file.name == "tmp.c":
-			function_name = node.displayname
-			if function_name not in function_definitions:
-				functions_used.append(function_name)
-
-	if len(functions_used) == 0:
-		trace_file.write("No function used\n")
-	else:
-		trace_file.write("Functions used:\n")
-		for function in functions_used:
-			trace_file.write("\t- " + function + "\n")
-	trace_file.write("\n")
-
-	for function in functions_used:
-		if function not in subject.authorized_functions:
-			trace_file.write("END OF GRADING: unauthorized function " + function + "\n")
-			trace_file.close()
-			os.chdir(save_current_dir)
-			trace = get_trace_content(trace_file.name)
-			client.send("grade_result", {"grade": False, "trace": trace if subject.send_trace else None, "try": client.tries})
-			print("Client " + str(client.id) + " failed exercise " + subject.name + " (unauthorized function " + function + ")")
-			return 0
 
 	trace_file.write("\n================= Execution =================\n")
 	execute_subject_cmd = "./our_exe > our_output"
