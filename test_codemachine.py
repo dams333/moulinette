@@ -85,3 +85,6 @@ response = requests.post(url, json=data)
 
 with open('response.txt', 'w') as f:
 	f.write(response.json()['trace'])
+res = response.json()
+res['trace'] = '...'
+print(json.dumps(res, indent=4))

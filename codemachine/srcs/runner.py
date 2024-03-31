@@ -124,10 +124,13 @@ def run_codemachine(work_folder, execution_folder, data):
 		traceUtil.add_command(user_execution_cmd + ' > ' + user_result_file)
 		try:
 			execution_subprocess = subprocess.Popen('runuser -l codemachine -c ' + user_execution_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			execution_subprocess.wait(timeout=5)
+			execution_exit_code = execution_subprocess.wait(timeout=5)
 			with open(user_result_file, 'w') as f:
 				f.write(execution_subprocess.stdout.read().decode())
 				f.close()
+			if execution_exit_code != 0:
+				traceUtil.add('Execution ended with exit code ' + str(execution_exit_code))
+				return finish(traceUtil, False, 'execution failed')
 		except subprocess.TimeoutExpired:
 			return finish(traceUtil, False, 'timed out')
 		
