@@ -37,7 +37,12 @@ def start_process():
 		execution_folder = '/codemachine/' + process_id
 		os.mkdir(execution_folder)
 
-		return jsonify(runner.run_codemachine(work_folder, execution_folder, data))
+		res = jsonify(runner.run_codemachine(work_folder, execution_folder, data))
+
+		os.system('rm -rf ' + work_folder)
+		os.system('rm -rf ' + execution_folder)
+
+		return res
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=3000)
