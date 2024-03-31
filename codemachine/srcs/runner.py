@@ -135,7 +135,7 @@ def run_codemachine(work_folder, execution_folder, data):
 			return finish(traceUtil, False, 'timed out')
 		
 		traceUtil.add_section('Output')
-		diff_cmd = 'diff ' + our_result_file + ' ' + user_result_file
+		diff_cmd = 'diff -U 3 ' + user_result_file + ' ' + our_result_file
 		traceUtil.add_command(diff_cmd)
 		diff_subprocess = subprocess.Popen(diff_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		diff_exit_code = diff_subprocess.wait()
