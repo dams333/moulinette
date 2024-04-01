@@ -6,4 +6,6 @@ WORKDIR /usr/moulinette
 
 RUN pip install -r requirements.txt
 
+RUN mkdir -p /tmp/subjects
+
 ENTRYPOINT ["python", "moulinette.py"]

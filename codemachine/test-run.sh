@@ -1,2 +1,2 @@
 docker build -t codemachine:latest .
-docker run -p 3000:3000 codemachine:latest
+docker run --name codemachine --network codemachine codemachine:latest
