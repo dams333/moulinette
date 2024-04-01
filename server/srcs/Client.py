@@ -23,6 +23,13 @@ def get_client(addr):
 						return client
 		return None
 
+def get_clients():
+		global clients
+		clients_list = []
+		for client in clients:
+				clients_list.append({'id': client.id, 'addr': client.addr, 'current_subject': client.current_subject.name, 'current_level': client.current_level, 'current_try': client.current_try, 'is_grading': client.is_grading})
+		return clients_list
+
 class Client:		
 		def __init__(self, addr):
 				self.addr = addr

@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
-from Client import add_client, get_client
-from Subject import load_subjects
+from flask_cors import CORS, cross_origin
+from Client import add_client, get_client, get_clients
+from Subject import load_subjects, get_subjects
 from codemachines import register_codemachine, use_codemachine
 import sys
 
 app = Flask('moulinette')
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/join', methods=['POST'])
 def join():
@@ -50,6 +53,14 @@ def submit():
 		request.client.current_try += 1
 
 	return jsonify(data)
+
+@app.route('/status', methods=['GET'])
+@cross_origin()
+def status():
+	return jsonify({
+		'clients': get_clients(),
+		'subjects': get_subjects()
+	})
 
 @app.before_request
 def before_request():

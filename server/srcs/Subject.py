@@ -6,7 +6,13 @@ subjects = {}
 
 def get_subjects():
 	global subjects
-	return subjects
+	subjects_list = {}
+	for level in subjects.keys():
+		subjects_list[level] = []
+		for subject in subjects[level]:
+			subjects_list[level].append({'name': subject.name, 'subject': subject.subject, 'main': subject.main, 'function': subject.function, 'send_trace': subject.send_trace, 'authorized_functions': subject.authorized_functions, 'compiler_flags': subject.compiler_flags})
+	return subjects_list
+
 
 class Subject:
 	def __init__(self, folder_path):
