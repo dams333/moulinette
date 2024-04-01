@@ -34,8 +34,20 @@ def submit():
 	if request.client.current_subject is None:
 		return jsonify({'status': 'error', 'message': 'You must get a subject first'})
 	
-	use_codemachine(request.client, request.json)
-	return jsonify({'status': 'success'})
+	res = use_codemachine(request.client, request.json)
+
+	if res['success']:
+		request.client.current_try = 1
+		request.client.current_level += 1
+		request.client.current_subject = None
+	else:
+		request.client.current_try += 1
+
+	data = {
+		'status': 'success' if res['success'] else 'failure',
+		'trace': res['trace'] if request.client.current_subject.send_trace else None
+	}
+	return jsonify(data)
 
 @app.before_request
 def before_request():
