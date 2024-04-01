@@ -36,6 +36,12 @@ def submit():
 	
 	res = use_codemachine(request.client, request.json)
 
+	data = {
+		'status': 'success' if res['success'] else 'failure',
+		'trace': res['trace'] if request.client.current_subject.send_trace else None,
+		'try_count': request.client.current_try,
+	}
+
 	if res['success']:
 		request.client.current_try = 1
 		request.client.current_level += 1
@@ -43,10 +49,6 @@ def submit():
 	else:
 		request.client.current_try += 1
 
-	data = {
-		'status': 'success' if res['success'] else 'failure',
-		'trace': res['trace'] if request.client.current_subject.send_trace else None
-	}
 	return jsonify(data)
 
 @app.before_request
